@@ -23,24 +23,24 @@
 ## 🔨 Build (Builder)
 
 ### Core Timer Engine
-- [ ] Create `app/lib/routine.ts` - Phase definitions
-- [ ] Create `app/hooks/useTimer.ts` - Timer logic hook
-- [ ] Implement absolute timestamp timing
-- [ ] Implement pause/resume logic
-- [ ] Implement phase transition logic
+- [x] Create `app/lib/routine.ts` - Phase definitions
+- [x] Create `app/hooks/useTimer.ts` - Timer logic hook
+- [x] Implement absolute timestamp timing
+- [x] Implement pause/resume logic
+- [x] Implement phase transition logic
 
 ### UI Components
-- [ ] Create `app/components/Timer.tsx`
-- [ ] Big countdown display (mm:ss)
-- [ ] Phase label display
-- [ ] Control buttons (Start/Pause/Resume/Reset)
-- [ ] Beep/vibration toggle
-- [ ] Mobile-first styling
+- [x] Create `app/components/Timer.tsx`
+- [x] Big countdown display (mm:ss)
+- [x] Phase label display
+- [x] Control buttons (Start/Pause/Resume/Reset)
+- [x] Beep/vibration toggle
+- [x] Mobile-first styling
 
 ### PWA Setup
-- [ ] Create `public/manifest.json`
-- [ ] Add iOS meta tags to layout.tsx
-- [ ] Add app icons
+- [x] Create `public/manifest.json`
+- [x] Add iOS meta tags to layout.tsx
+- [x] Add app icons (placeholders)
 
 ---
 
