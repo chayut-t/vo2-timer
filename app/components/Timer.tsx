@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTimer } from '../hooks/useTimer';
 import {
   formatTime,
@@ -45,10 +45,16 @@ function useFeedback() {
   }, []);
 
   const playBeep = useCallback(
-    (frequency: number = 800, duration: number = 150) => {
+    async (frequency: number = 800, duration: number = 150) => {
       if (!enabled) return;
       try {
         const ctx = getAudioContext();
+
+        // Resume AudioContext if suspended (required on mobile browsers)
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+
         const oscillator = ctx.createOscillator();
         const gainNode = ctx.createGain();
 
@@ -64,7 +70,7 @@ function useFeedback() {
         oscillator.start(ctx.currentTime);
         oscillator.stop(ctx.currentTime + duration / 1000);
       } catch {
-        // Audio not supported
+        // Audio not supported or resume failed
       }
     },
     [enabled, getAudioContext]
@@ -123,7 +129,10 @@ function useFeedback() {
     vibrate([100, 50, 100, 50, 200]);
   }, [enabled, playBeep, vibrate]);
 
-  return { enabled, toggle, triggerTransition, triggerComplete };
+  return useMemo(
+    () => ({ enabled, toggle, triggerTransition, triggerComplete }),
+    [enabled, toggle, triggerTransition, triggerComplete]
+  );
 }
 
 // ============================================
@@ -135,11 +144,24 @@ export default function Timer() {
   const feedback = useFeedback();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const prevPhaseIndexRef = useRef(timer.currentPhaseIndex);
+  const prevStatusRef = useRef(timer.status);
 
-  // Detect phase transitions and trigger feedback
+  // Trigger feedback on workout START (idle → running)
+  useEffect(() => {
+    if (prevStatusRef.current === 'idle' && timer.status === 'running') {
+      // Single beep + short vibration per SPEC F4
+      feedback.triggerTransition('warmup');
+    }
+    prevStatusRef.current = timer.status;
+  }, [timer.status, feedback]);
+
+  // Detect phase transitions and trigger feedback (after first phase)
   useEffect(() => {
     if (timer.status === 'running' && timer.currentPhaseIndex !== prevPhaseIndexRef.current) {
-      feedback.triggerTransition(timer.currentPhase.type);
+      // Only trigger if not the first phase (start feedback already handled above)
+      if (prevPhaseIndexRef.current !== 0 || timer.currentPhaseIndex !== 0) {
+        feedback.triggerTransition(timer.currentPhase.type);
+      }
       prevPhaseIndexRef.current = timer.currentPhaseIndex;
     }
   }, [timer.status, timer.currentPhaseIndex, timer.currentPhase.type, feedback]);
@@ -150,6 +172,52 @@ export default function Timer() {
       feedback.triggerComplete();
     }
   }, [timer.status, feedback]);
+
+  // Wake Lock: Keep screen awake during workout (AC7.4)
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      if ('wakeLock' in navigator && timer.status === 'running') {
+        try {
+          wakeLockRef.current = await navigator.wakeLock.request('screen');
+        } catch {
+          // Wake lock request failed (e.g., low battery, not supported)
+        }
+      }
+    };
+
+    const releaseWakeLock = async () => {
+      if (wakeLockRef.current) {
+        try {
+          await wakeLockRef.current.release();
+          wakeLockRef.current = null;
+        } catch {
+          // Release failed
+        }
+      }
+    };
+
+    if (timer.status === 'running') {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+
+    // Re-acquire wake lock when tab becomes visible again
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && timer.status === 'running') {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      releaseWakeLock();
+    };
+  }, [timer.status]);
 
   // Handle reset with confirmation
   const handleResetRequest = useCallback(() => {

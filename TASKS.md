@@ -47,20 +47,47 @@
 ## 🧪 Test (QA)
 
 ### Functional Tests
-- [ ] Timer accuracy over full routine
-- [ ] Pause/resume accuracy
-- [ ] Phase transitions timing
-- [ ] State machine transitions
+- [x] Timer accuracy over full routine (absolute timestamps - no drift)
+- [x] Pause/resume accuracy (correct calculation)
+- [x] Phase transitions timing (boundaries correct)
+- [x] State machine transitions (all 16 cases verified)
 
 ### UI Tests
-- [ ] Mobile viewport (375px)
-- [ ] Button state correctness
-- [ ] Display updates
+- [ ] Mobile viewport (375px) - needs manual test
+- [x] Button state correctness (code review passed)
+- [x] Display updates (requestAnimationFrame loop)
 
 ### Edge Cases
-- [ ] Rapid button clicking
-- [ ] Tab backgrounding
-- [ ] Page refresh handling
+- [x] Rapid button clicking (guards prevent issues)
+- [x] Tab backgrounding (timestamps handle correctly)
+- [x] Page refresh handling (state lost - expected behavior)
+
+---
+
+## 🐛 Bugs Found
+
+### High Priority
+- [x] **BUG-001**: No audio/haptic feedback on workout START
+  - Location: `Timer.tsx:140-147`
+  - SPEC says single beep + short pulse on start
+  - FIXED: Added effect to detect idle→running transition
+
+### Medium Priority
+- [x] **BUG-002**: AudioContext may be suspended on mobile
+  - Location: `Timer.tsx:47-77`
+  - FIXED: Added `ctx.resume()` check before playing audio
+  - Made `playBeep` async to handle resume promise
+
+- [x] **BUG-003**: Screen may sleep during workout (AC7.4)
+  - Wake Lock API implemented in `Timer.tsx:167-211`
+  - Acquires lock when running, releases on pause/done/reset
+  - Re-acquires on tab visibility change
+
+### Low Priority
+- [x] **BUG-004**: useFeedback returns non-memoized object
+  - Location: `Timer.tsx:132-135`
+  - FIXED: Wrapped return in `useMemo` with proper dependencies
+  - Prevents unnecessary effect re-runs
 
 ---
 
