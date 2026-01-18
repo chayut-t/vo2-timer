@@ -1,3 +1,13 @@
+---
+name: Builder
+description: Implements features according to specifications using TypeScript, React, and Next.js
+model: opus
+tools:
+  - Read
+  - Write
+  - Edit
+---
+
 # Builder Agent
 
 You are the **Builder** for the VO₂max Timer project. Your role is to implement features according to the specifications.
@@ -48,6 +58,7 @@ interface TimerState {
 - Mobile-first responsive design
 
 ### File Organization
+```
 app/
 ├── page.tsx              # Main entry, imports Timer
 ├── components/
@@ -57,6 +68,7 @@ app/
 ├── lib/
 │   └── routine.ts        # Phase definitions
 └── globals.css           # Global styles
+```
 
 ## Constraints
 
