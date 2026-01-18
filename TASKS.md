@@ -10,13 +10,13 @@
 
 ## 📐 Specification (Architect)
 
-- [ ] Write detailed SPEC.md
-  - [ ] Feature descriptions
-  - [ ] Component interfaces
-  - [ ] State machine specification
-  - [ ] Acceptance criteria
+- [x] Write detailed SPEC.md
+  - [x] Feature descriptions (F1-F4)
+  - [x] Component interfaces (TypeScript)
+  - [x] State machine specification
+  - [x] Acceptance criteria (AC1-AC7)
 - [x] Document decisions in DECISIONS.md
-- [ ] Define phase schedule data structure
+- [x] Define phase schedule data structure
 
 ---
 
